@@ -466,11 +466,6 @@ Modern Python web framework used for our collector service.
 - Type validation with Pydantic
 - High performance
 
-### Streamlit
-Python library for creating data apps. Used for our dashboard.
-
-**Key concept:** Re-runs entire script on each interaction. Requires caching for expensive operations.
-
 ### WebSocket
 Protocol for persistent, two-way communication (not used in this project, but common for real-time blockchain data).
 

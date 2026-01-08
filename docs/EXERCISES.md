@@ -6,8 +6,8 @@ Step-by-step exercises for exploring blockchain data engineering concepts. Each 
 
 Before starting these exercises, ensure you have:
 - Docker and Docker Compose installed
-- Project running (`./start.sh` or `docker compose up -d`)
-- Access to dashboard at http://localhost:8501
+- Project running (`./scripts/start.sh` or `docker compose up -d`)
+- Access to dashboard at http://localhost:3001
 - (Optional) SQL client or Python environment for direct queries
 
 ---
@@ -76,7 +76,7 @@ Before starting these exercises, ensure you have:
    curl http://localhost:8000/health
    ```
 
-5. Open the dashboard in your browser: http://localhost:8501
+5. Open the dashboard in your browser: http://localhost:3001
 
 **Questions to Consider:**
 - What happens if you stop the ClickHouse container? Try `docker compose stop clickhouse` and observe the error messages.
@@ -94,7 +94,7 @@ Before starting these exercises, ensure you have:
 
 **Instructions:**
 
-1. Open the dashboard at http://localhost:8501
+1. Open the dashboard at http://localhost:3001
 
 2. Observe the initial state:
    - Status should show "Stopped" (red indicator)

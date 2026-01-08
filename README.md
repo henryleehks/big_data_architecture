@@ -6,6 +6,69 @@ A complete, containerized system for ingesting blockchain data from **Bitcoin** 
 
 This system demonstrates real-time blockchain data engineering by collecting, storing, and analyzing data from Bitcoin and Solana networks. Students learn how to build data pipelines that process decentralized ledger data at scale using modern tools like FastAPI, ClickHouse, and Docker.
 
+## Repository Structure
+
+```
+big_data_architecture/
+├── README.md                           # Project overview and setup guide (this file)
+├── docker-compose.yml                  # Service orchestration (ClickHouse, Collector, Dashboard)
+├── .env.example                        # Environment configuration template
+├── scripts/                            # Utility scripts
+│   ├── start.sh                        # Quick start script (runs docker compose)
+│   └── cleanup.sh                      # Complete teardown and data removal
+├── docs/                               # Learning materials and references
+│   ├── EXERCISES.md                    # Hands-on exercises (queries, analysis, challenges)
+│   ├── GLOSSARY.md                     # Blockchain and data engineering terminology
+│   └── SAMPLE_QUERIES.md               # ClickHouse SQL query examples
+├── collector/                          # Python FastAPI data collection service
+│   ├── main.py                         # FastAPI orchestration (start/stop/status API)
+│   ├── collectors/
+│   │   ├── bitcoin_collector.py        # Bitcoin data collection (blocks, transactions)
+│   │   ├── solana_collector.py         # Solana data collection (slots, transactions)
+│   │   └── data_validator.py           # Data quality validation (VERACITY)
+│   ├── Dockerfile                      # Container image for collector service
+│   └── requirements.txt                # Python dependencies
+├── dashboard/                          # Next.js monitoring dashboard
+│   ├── app/
+│   │   ├── page.tsx                    # Main dashboard page
+│   │   ├── components/                 # React components (charts, tables, controls)
+│   │   ├── api/                        # API routes (data, status, start, stop)
+│   │   └── lib/                        # ClickHouse client and utilities
+│   ├── Dockerfile                      # Container image for dashboard service
+│   └── package.json                    # Node.js dependencies
+├── clickhouse-init/                    # Database initialization
+│   └── 01-init-schema.sql              # Table schemas with compression codecs
+└── data/                               # Persistent data storage (created at runtime)
+    └── clickhouse/                     # ClickHouse data files
+```
+
+### Quick Navigation
+
+**Getting Started:**
+- Setup instructions: See "Getting Started" section below
+- Configuration: See `.env.example` and "Configuration" section
+- Start system: `./scripts/start.sh` or `docker compose up`
+- Stop system: Press Stop button in dashboard or `docker compose down`
+- Complete cleanup: `./scripts/cleanup.sh`
+
+**Learning Resources:**
+- Hands-on exercises: `docs/EXERCISES.md` (9 progressive exercises)
+- Terminology reference: `docs/GLOSSARY.md` (blockchain and data concepts)
+- Query examples: `docs/SAMPLE_QUERIES.md` (ClickHouse SQL patterns)
+
+**Development:**
+- Collector code: `collector/` directory (Python/FastAPI)
+- Dashboard code: `dashboard/` directory (TypeScript/Next.js)
+- Database schema: `clickhouse-init/01-init-schema.sql`
+- API documentation: http://localhost:8000/docs (when running)
+- Dashboard UI: http://localhost:3001 (when running)
+
+**Data Access:**
+- Dashboard: http://localhost:3001
+- ClickHouse HTTP: http://localhost:8123 (username: default, password: clickhouse_password)
+- Collector API: http://localhost:8000
+- Direct queries: `docker compose exec clickhouse clickhouse-client --password clickhouse_password`
+
 ## Background
 
 ### Blockchain & Cryptocurrency Basics
@@ -203,7 +266,7 @@ See "Configuration Reference" section at the end for all available options.
 **3. Start the system**
 
 ```bash
-./start.sh
+./scripts/start.sh
 ```
 
 Or manually with Docker Compose:
@@ -271,7 +334,7 @@ docker compose down
 **Complete cleanup (remove all data and start fresh):**
 
 ```bash
-./cleanup.sh
+./scripts/cleanup.sh
 ```
 
 The cleanup script provides an interactive, safe way to remove all deployed resources:
@@ -307,7 +370,7 @@ All configuration is managed through the `.env` file. Key parameters include:
 
 ## Data Dictionaries
 
-The tables below define the schema for blockchain data collected by this system. Column descriptions provide context for each field, but for deeper explanations of blockchain concepts (UTXO, Merkle trees, Proof-of-History, etc.), see **[GLOSSARY.md](GLOSSARY.md)**.
+The tables below define the schema for blockchain data collected by this system. Column descriptions provide context for each field, but for deeper explanations of blockchain concepts (UTXO, Merkle trees, Proof-of-History, etc.), see **[docs/GLOSSARY.md](docs/GLOSSARY.md)**.
 
 ### Bitcoin Tables
 
@@ -379,7 +442,7 @@ The tables below define the schema for blockchain data collected by this system.
 - `error_count`: Number of errors encountered (network failures, RPC rate limits, parsing errors)
 - `error_message`: Detailed error description if `error_count` > 0
 
-**Usage:** Query this table to analyze collection throughput trends, identify slow APIs, detect error patterns, and monitor overall pipeline health. See Exercise 9 in EXERCISES.md.
+**Usage:** Query this table to analyze collection throughput trends, identify slow APIs, detect error patterns, and monitor overall pipeline health. See Exercise 9 in docs/EXERCISES.md.
 
 #### `collection_state`
 
@@ -467,7 +530,7 @@ WHERE database = 'blockchain_data' AND active = 1
 GROUP BY table;
 ```
 
-For more comprehensive query examples, see **[SAMPLE_QUERIES.md](SAMPLE_QUERIES.md)**.
+For more comprehensive query examples, see **[docs/SAMPLE_QUERIES.md](docs/SAMPLE_QUERIES.md)**.
 
 ## Accessing the Database
 
