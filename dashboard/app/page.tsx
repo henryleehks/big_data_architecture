@@ -58,18 +58,25 @@ export default function DashboardPage() {
 
       const started = new Date(status.started_at).getTime()
       const now = Date.now()
-      const elapsed = Math.floor((now - started) / 1000)
-      const total = maxMinutes * 60
+      const elapsedMinutes = (now - started) / (1000 * 60)
 
-      if (elapsed >= total) {
+      // VALIDATION: Only auto-stop if timestamp is valid and recent
+      const isValidTimestamp = elapsedMinutes >= 0 && elapsedMinutes <= maxMinutes * 2
+
+      if (!isValidTimestamp) {
+        console.warn('Skipping auto-stop check: stale timestamp detected')
+        return
+      }
+
+      if (elapsedMinutes >= maxMinutes) {
         // Timer expired, stop collection automatically
         handleStop()
       }
     }
 
-    // Check immediately and then every 5 seconds
+    // Check immediately and then every 1 second for more responsive auto-stop
     checkTimer()
-    const interval = setInterval(checkTimer, 5000)
+    const interval = setInterval(checkTimer, 1000)
 
     return () => clearInterval(interval)
   }, [status?.is_running, status?.started_at, maxMinutes, handleStop])

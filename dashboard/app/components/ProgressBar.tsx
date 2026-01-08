@@ -17,7 +17,18 @@ export default function ProgressBar({
   const progress = useMemo(() => {
     if (!startedAt || !isRunning) return 0
 
-    const elapsedSeconds = getElapsedSeconds(startedAt)
+    // Validate timestamp is fresh
+    const started = new Date(startedAt).getTime()
+    const now = Date.now()
+    const elapsedMs = now - started
+
+    // Reject if timestamp is in future or older than max collection time
+    const maxMs = maxMinutes * 60 * 1000
+    if (elapsedMs < 0 || elapsedMs > maxMs) {
+      return 0 // Invalid timestamp, return 0%
+    }
+
+    const elapsedSeconds = Math.floor(elapsedMs / 1000)
     const totalSeconds = maxMinutes * 60
     const percentage = Math.min(100, (elapsedSeconds / totalSeconds) * 100)
 
