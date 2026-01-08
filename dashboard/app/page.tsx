@@ -25,6 +25,8 @@ export default function DashboardPage() {
       await refreshStatus()
     } else {
       const error = await res.json()
+      // Refresh status even on error to sync UI with actual state
+      await refreshStatus()
       alert(error.error || 'Failed to start collection')
     }
   }, [refreshStatus])
@@ -35,7 +37,12 @@ export default function DashboardPage() {
       await refreshStatus()
     } else {
       const error = await res.json()
-      alert(error.error || 'Failed to stop collection')
+      // Refresh status even on error to sync UI with actual state
+      await refreshStatus()
+      // Only show alert if it's not a "collection not running" error
+      if (res.status !== 400 || !error.error?.includes('not running')) {
+        alert(error.error || 'Failed to stop collection')
+      }
     }
   }, [refreshStatus])
 
