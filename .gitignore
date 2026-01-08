@@ -76,3 +76,6 @@ tests/
 
 # Claude Code
 .claude/
+
+# Project plans
+plans/
