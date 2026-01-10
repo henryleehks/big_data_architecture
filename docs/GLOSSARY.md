@@ -5,12 +5,12 @@ A comprehensive glossary of terms used in this project, organized by category. D
 ## Table of Contents
 
 1. [The 5Vs of Big Data](#the-5vs-of-big-data)
-2. [Ethereum-Specific Terms](#ethereum-specific-terms)
-3. [Bitcoin-Specific Terms](#bitcoin-specific-terms)
-4. [Solana-Specific Terms](#solana-specific-terms)
-5. [Database & ClickHouse Terms](#database--clickhouse-terms)
-6. [Data Engineering Terms](#data-engineering-terms)
-7. [API & Web Terms](#api--web-terms)
+<!-- 2. [Ethereum-Specific Terms](#ethereum-specific-terms) --> <!-- ETHEREUM: Commented out -->
+2. [Bitcoin-Specific Terms](#bitcoin-specific-terms)
+3. [Solana-Specific Terms](#solana-specific-terms)
+4. [Database & ClickHouse Terms](#database--clickhouse-terms)
+5. [Data Engineering Terms](#data-engineering-terms)
+6. [API & Web Terms](#api--web-terms)
 
 **Note:** For blockchain fundamentals (blocks, transactions, hashing, consensus), see the Background section in README.md.
 
@@ -108,6 +108,12 @@ The dashboard and sample queries transform raw blockchain data into actionable i
 
 ---
 
+<!-- ========================================
+ETHEREUM TERMS: Commented out for future implementation
+This section is preserved for when Ethereum functionality is re-enabled.
+======================================== -->
+
+<!--
 ## Ethereum-Specific Terms
 
 **Note:** Ethereum support is under development. These terms are provided for educational reference. The project currently focuses on Bitcoin and Solana. See README Future Development section for Ethereum roadmap.
@@ -166,6 +172,7 @@ Hash of the previous block in the chain. This cryptographic link:
 - Invalidates all subsequent blocks if modified
 
 ---
+-->
 
 ## Bitcoin-Specific Terms
 

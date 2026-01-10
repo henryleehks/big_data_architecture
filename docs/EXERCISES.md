@@ -200,19 +200,22 @@ Before starting these exercises, ensure you have:
    SHOW TABLES;
    ```
 
-   **Expected output** (8 tables):
+   **Expected output** (6 tables): <!-- was 8 tables with Ethereum -->
    ```
    bitcoin_blocks
    bitcoin_transactions
    collection_metrics
    collection_state
+   data_quality
+   <!-- ETHEREUM: Commented out - uncomment when re-enabling Ethereum
    ethereum_blocks
    ethereum_transactions
+   -->
    solana_blocks
    solana_transactions
    ```
 
-   If you see 8 tables, you're ready to query!
+   If you see 6 tables (or 7 with data_quality), you're ready to query!
 
 5. **Try your first query**:
    ```sql
@@ -653,7 +656,9 @@ These exercises help you understand the 5Vs framework through hands-on explorati
 **Questions to Consider:**
 - Why does Bitcoin have merkle_root but Solana doesn't?
 - What does the UTXO model tell us that Solana's model doesn't?
+<!-- ETHEREUM: Commented out - uncomment when re-enabling Ethereum
 - How would you add Ethereum data with gas and Wei to this schema?
+-->
 
 ---
 
@@ -821,6 +826,184 @@ These exercises help you understand the 5Vs framework through hands-on explorati
 - What business decisions could these insights drive?
 - How would you visualize these metrics for stakeholders?
 - What additional value could you extract with more data?
+
+---
+
+### Exercise 15: Understanding Data Pagination
+
+**Learning Objectives:**
+- Learn how pagination improves UI performance with large datasets
+- Understand client-side vs server-side pagination trade-offs
+- Analyze DOM rendering impact of pagination
+
+**Instructions:**
+
+1. **Explore the Preview Tables**
+   - Open the dashboard at http://localhost:3001
+   - Scroll down to the "Data Preview" section
+   - Note how each table shows only 10 rows per page
+   - Look for the pagination controls (Previous/Next buttons, page indicator)
+
+2. **Navigate Through Pages**
+   - Click "Next" to advance to page 2
+   - Note the record counter: "Showing 11 to 20 of XX records"
+   - Continue clicking "Next" until you reach the last page
+   - Click "Previous" to go back
+
+3. **Analyze Data Transfer**
+   - Open browser DevTools (F12) → Network tab
+   - Refresh the page to clear network logs
+   - Observe the `/api/preview/*` requests
+   - Click on one request to see response size
+   - Note: All 550 records are fetched once, then paginated client-side
+
+4. **Examine Auto-Refresh Behavior**
+   - Stay on page 2 or higher
+   - Wait 10 seconds for data to refresh
+   - Observe if you stay on the same page or get reset
+   - Check the Console tab for any errors
+
+**Questions to Answer:**
+
+1. **How many total records are fetched for Bitcoin Transactions?**
+   - Hint: Look at the table header or API response
+
+2. **What's the advantage of client-side pagination?**
+   - Think about: Speed of page switches, backend load, complexity
+
+3. **What's the disadvantage of client-side pagination?**
+   - Think about: Initial load time, memory usage, mobile performance
+
+4. **How often does the preview data refresh?**
+   - Hint: Watch the Network tab or check the page description
+
+5. **What happens to your current page when data refreshes?**
+   - Try navigating to page 3, wait 10 seconds, observe
+
+**Extension:**
+
+Write a query to calculate the optimal page size based on average row byte size:
+
+```sql
+SELECT
+    'bitcoin_transactions' as table_name,
+    avg(length(toString(tx_hash)) +
+        length(toString(timestamp)) +
+        8 + 8 + 4) as avg_row_bytes,
+    ceil(4096 / avg_row_bytes) as optimal_page_size_for_4kb_target
+FROM bitcoin_transactions
+LIMIT 1000;
+```
+
+**What is pagination good for?**
+- Reduces DOM nodes (only 10 rows rendered vs 550)
+- Improves scroll performance
+- Reduces memory usage
+- Better mobile experience
+
+---
+
+### Exercise 16: Analyzing Real-Time Dashboard Performance
+
+**Learning Objectives:**
+- Understand how real-time dashboards manage data updates
+- Measure JavaScript execution and rendering performance
+- Identify performance bottlenecks
+
+**Instructions:**
+
+1. **Record Performance Profile**
+   - Open browser DevTools (F12) → Performance tab
+   - Click the record button (or Cmd/Ctrl + E)
+   - Let dashboard run for 30 seconds (3 auto-refreshes at 10s intervals)
+   - Stop recording
+   - Chrome will generate a performance timeline
+
+2. **Analyze the Timeline**
+   - Look for repeating patterns (should see spikes every 5-10 seconds)
+   - Expand the "Main" section to see JavaScript execution
+   - Look for:
+     - `fetch` calls (API requests)
+     - React render cycles
+     - DOM updates
+
+3. **Measure Network Performance**
+   - Switch to Network tab
+   - Clear logs (🚫 icon)
+   - Watch for 20 seconds
+   - Count how many API requests occur
+   - Note request timing:
+     - Queue time
+     - DNS lookup
+     - Response time
+
+4. **Inspect Memory Usage**
+   - DevTools → Memory tab
+   - Take a heap snapshot before starting collection
+   - Wait 2 minutes
+   - Take another heap snapshot
+   - Compare the two snapshots
+
+**Questions to Answer:**
+
+1. **How many API requests occur per refresh cycle?**
+   - Expected: 6 requests (status, data, 4x preview endpoints)
+
+2. **What's the average response time for `/api/preview/*` endpoints?**
+   - Check Network tab → Timing column
+   - Should be < 100ms for small datasets
+
+3. **How does pagination affect DOM node count?**
+   - DevTools → Elements → Right-click root → Copy → Copy outerHTML length
+   - Compare with and without pagination (theoretical)
+   - With 550 rows: ~550 `<tr>` elements
+   - With pagination (10 rows): ~10 `<tr>` elements
+
+4. **What is SWR (stale-while-revalidate)?**
+   - Research: What is the SWR pattern?
+   - How does it help with real-time dashboards?
+   - Check the code in `dashboard/app/hooks/usePreviewData.ts`
+
+5. **What optimizations could reduce memory usage?**
+   - Think about:
+     - Virtual scrolling
+     - Lazy loading
+     - Server-side pagination
+     - Debouncing API calls
+
+**Performance Metrics to Record:**
+
+| Metric | Before Pagination | After Pagination | Improvement |
+|--------|-------------------|------------------|-------------|
+| DOM Nodes (approx) | ~2750 (550 rows × 5 cols) | ~50 (10 rows × 5 cols) | ~98% |
+| Initial Load Time | ? ms | ? ms | ? |
+| Memory Usage | ? MB | ? MB | ? |
+| Scroll Performance | Laggy/Smooth? | Laggy/Smooth? | Better/Same |
+
+**Extension Challenge:**
+
+1. **Disable Pagination Temporarily**
+   - Edit `dashboard/app/components/PreviewTable.tsx`
+   - Change `ROWS_PER_PAGE = 10` to `ROWS_PER_PAGE = 550`
+   - Rebuild dashboard: `docker compose build dashboard && docker compose up -d dashboard`
+   - Compare performance with previous measurements
+
+2. **Measure API Response Times**
+   ```bash
+   # Bitcoin Blocks (few records)
+   time curl -s http://localhost:3001/api/preview/bitcoin-blocks > /dev/null
+
+   # Solana Transactions (550 records)
+   time curl -s http://localhost:3001/api/preview/solana-transactions > /dev/null
+   ```
+
+   Compare response times - larger datasets take longer!
+
+**What did you learn?**
+- Pagination dramatically reduces DOM rendering overhead
+- SWR enables smart caching with auto-refresh
+- Network requests are the biggest performance bottleneck
+- Client-side rendering can handle moderate data volumes efficiently
 
 ---
 

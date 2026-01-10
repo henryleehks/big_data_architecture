@@ -6,43 +6,47 @@ CREATE DATABASE IF NOT EXISTS blockchain_data;
 
 USE blockchain_data;
 
--- Ethereum Blocks Table
-CREATE TABLE IF NOT EXISTS ethereum_blocks (
-    block_number UInt64 CODEC(Delta, ZSTD(3)),
-    block_hash String CODEC(ZSTD(3)),
-    timestamp DateTime CODEC(Delta, ZSTD(3)),
-    parent_hash String CODEC(ZSTD(3)),
-    miner String CODEC(ZSTD(3)),
-    difficulty UInt64 CODEC(Delta, ZSTD(3)),
-    total_difficulty String CODEC(ZSTD(3)),
-    size UInt32 CODEC(ZSTD(3)),
-    gas_limit UInt64 CODEC(Delta, ZSTD(3)),
-    gas_used UInt64 CODEC(Delta, ZSTD(3)),
-    transaction_count UInt32 CODEC(ZSTD(3)),
-    collected_at DateTime DEFAULT now() CODEC(Delta, ZSTD(3)),
-    source String DEFAULT 'ethereum' CODEC(ZSTD(3))
-) ENGINE = MergeTree()
-ORDER BY (timestamp, block_number)
-PARTITION BY toYYYYMM(timestamp);
-
--- Ethereum Transactions Table
-CREATE TABLE IF NOT EXISTS ethereum_transactions (
-    tx_hash String CODEC(ZSTD(3)),
-    block_number UInt64 CODEC(Delta, ZSTD(3)),
-    block_hash String CODEC(ZSTD(3)),
-    from_address String CODEC(ZSTD(3)),
-    to_address String CODEC(ZSTD(3)),
-    value String CODEC(ZSTD(3)),
-    gas UInt64 CODEC(Delta, ZSTD(3)),
-    gas_price String CODEC(ZSTD(3)),
-    nonce UInt64 CODEC(Delta, ZSTD(3)),
-    transaction_index UInt32 CODEC(ZSTD(3)),
-    timestamp DateTime CODEC(Delta, ZSTD(3)),
-    collected_at DateTime DEFAULT now() CODEC(Delta, ZSTD(3)),
-    source String DEFAULT 'ethereum' CODEC(ZSTD(3))
-) ENGINE = MergeTree()
-ORDER BY (timestamp, block_number, transaction_index)
-PARTITION BY toYYYYMM(timestamp);
+-- ========================================
+-- ETHEREUM: Commented out for future implementation
+-- To re-enable: Uncomment lines 9-45 and set ETHEREUM_ENABLED=true in .env
+-- ========================================
+-- -- Ethereum Blocks Table
+-- CREATE TABLE IF NOT EXISTS ethereum_blocks (
+--     block_number UInt64 CODEC(Delta, ZSTD(3)),
+--     block_hash String CODEC(ZSTD(3)),
+--     timestamp DateTime CODEC(Delta, ZSTD(3)),
+--     parent_hash String CODEC(ZSTD(3)),
+--     miner String CODEC(ZSTD(3)),
+--     difficulty UInt64 CODEC(Delta, ZSTD(3)),
+--     total_difficulty String CODEC(ZSTD(3)),
+--     size UInt32 CODEC(ZSTD(3)),
+--     gas_limit UInt64 CODEC(Delta, ZSTD(3)),
+--     gas_used UInt64 CODEC(Delta, ZSTD(3)),
+--     transaction_count UInt32 CODEC(ZSTD(3)),
+--     collected_at DateTime DEFAULT now() CODEC(Delta, ZSTD(3)),
+--     source String DEFAULT 'ethereum' CODEC(ZSTD(3))
+-- ) ENGINE = MergeTree()
+-- ORDER BY (timestamp, block_number)
+-- PARTITION BY toYYYYMM(timestamp);
+--
+-- -- Ethereum Transactions Table
+-- CREATE TABLE IF NOT EXISTS ethereum_transactions (
+--     tx_hash String CODEC(ZSTD(3)),
+--     block_number UInt64 CODEC(Delta, ZSTD(3)),
+--     block_hash String CODEC(ZSTD(3)),
+--     from_address String CODEC(ZSTD(3)),
+--     to_address String CODEC(ZSTD(3)),
+--     value String CODEC(ZSTD(3)),
+--     gas UInt64 CODEC(Delta, ZSTD(3)),
+--     gas_price String CODEC(ZSTD(3)),
+--     nonce UInt64 CODEC(Delta, ZSTD(3)),
+--     transaction_index UInt32 CODEC(ZSTD(3)),
+--     timestamp DateTime CODEC(Delta, ZSTD(3)),
+--     collected_at DateTime DEFAULT now() CODEC(Delta, ZSTD(3)),
+--     source String DEFAULT 'ethereum' CODEC(ZSTD(3))
+-- ) ENGINE = MergeTree()
+-- ORDER BY (timestamp, block_number, transaction_index)
+-- PARTITION BY toYYYYMM(timestamp);
 
 -- Bitcoin Blocks Table
 CREATE TABLE IF NOT EXISTS bitcoin_blocks (

@@ -9,6 +9,7 @@ This document provides a comprehensive set of SQL queries for exploring and anal
 3. [Time-Series Analysis](#time-series-analysis)
 4. [Cross-Chain Comparisons](#cross-chain-comparisons)
 5. [Advanced Analytics](#advanced-analytics)
+6. [Pagination and Data Quality](#pagination-and-data-quality)
 
 ---
 
@@ -216,6 +217,185 @@ SELECT
 FROM collection_metrics
 GROUP BY source;
 ```
+
+---
+
+## Pagination and Data Quality
+
+### Paginated Results (Server-Side Pattern)
+
+When implementing server-side pagination, use `LIMIT` and `OFFSET` to fetch specific pages:
+
+```sql
+-- Page 1: First 10 records
+SELECT
+    block_height,
+    block_hash,
+    timestamp,
+    transaction_count
+FROM bitcoin_blocks
+ORDER BY timestamp DESC
+LIMIT 10 OFFSET 0;
+
+-- Page 2: Records 11-20
+SELECT
+    block_height,
+    block_hash,
+    timestamp,
+    transaction_count
+FROM bitcoin_blocks
+ORDER BY timestamp DESC
+LIMIT 10 OFFSET 10;
+
+-- Page 3: Records 21-30
+SELECT
+    block_height,
+    block_hash,
+    timestamp,
+    transaction_count
+FROM bitcoin_blocks
+ORDER BY timestamp DESC
+LIMIT 10 OFFSET 20;
+
+-- General formula: OFFSET = (page_number - 1) * rows_per_page
+```
+
+### Calculate Total Pages
+
+To show pagination controls, calculate the total number of pages:
+
+```sql
+SELECT
+    count() AS total_records,
+    ceil(count() / 10.0) AS total_pages_for_10_per_page,
+    ceil(count() / 25.0) AS total_pages_for_25_per_page,
+    ceil(count() / 50.0) AS total_pages_for_50_per_page
+FROM bitcoin_transactions;
+```
+
+### Optimal Page Size Based on Data Size
+
+Calculate the ideal page size based on average row byte size (targeting 4KB response):
+
+```sql
+SELECT
+    'bitcoin_blocks' AS table_name,
+    count() AS total_rows,
+    avg(length(toString(block_hash)) +
+        length(toString(timestamp)) +
+        8 + 8 + 4 + 4 + 4) AS avg_row_bytes,
+    ceil(4096 / avg(length(toString(block_hash)) +
+        length(toString(timestamp)) +
+        8 + 8 + 4 + 4 + 4)) AS optimal_page_size_for_4kb
+FROM bitcoin_blocks
+LIMIT 1000;
+
+-- Apply to transactions table
+SELECT
+    'solana_transactions' AS table_name,
+    count() AS total_rows,
+    avg(length(toString(signature)) +
+        length(toString(timestamp)) +
+        length(toString(signer)) +
+        8 + 4) AS avg_row_bytes,
+    ceil(4096 / avg(length(toString(signature)) +
+        length(toString(timestamp)) +
+        length(toString(signer)) +
+        8 + 4)) AS optimal_page_size_for_4kb
+FROM solana_transactions
+LIMIT 1000;
+```
+
+### Client-Side Pagination (Fetch All, Paginate in UI)
+
+When dataset is small enough (< 1000 rows), fetch all records and paginate client-side:
+
+```sql
+-- Fetch all recent records (dashboard uses this approach)
+SELECT
+    block_height,
+    block_hash,
+    timestamp,
+    transaction_count,
+    size,
+    weight
+FROM bitcoin_blocks
+ORDER BY timestamp DESC
+LIMIT 550;  -- Fetch enough for ~55 pages at 10 rows/page
+```
+
+**Advantages of Client-Side Pagination:**
+- Instant page transitions (no API calls)
+- Reduced backend query load
+- Simpler API design
+
+**Trade-offs:**
+- Larger initial data transfer
+- Not suitable for very large datasets
+
+### Data Quality Checks
+
+Query the `data_quality` table to identify issues:
+
+```sql
+-- View all data quality issues
+SELECT
+    check_time,
+    blockchain,
+    metric_name,
+    status,
+    details
+FROM data_quality
+WHERE status = 'ERROR'
+ORDER BY check_time DESC
+LIMIT 20;
+
+-- Count issues by blockchain
+SELECT
+    blockchain,
+    metric_name,
+    count() AS issue_count
+FROM data_quality
+WHERE status = 'ERROR'
+GROUP BY blockchain, metric_name
+ORDER BY issue_count DESC;
+
+-- Data quality over time
+SELECT
+    toStartOfDay(check_time) AS day,
+    blockchain,
+    countIf(status = 'OK') AS passed_checks,
+    countIf(status = 'ERROR') AS failed_checks,
+    (countIf(status = 'OK') * 100.0 / count()) AS pass_rate_percent
+FROM data_quality
+GROUP BY day, blockchain
+ORDER BY day, blockchain;
+```
+
+### Pagination Performance Comparison
+
+Compare query execution time for different pagination approaches:
+
+```sql
+-- Approach 1: Simple OFFSET (slower for high offsets)
+SELECT * FROM bitcoin_blocks
+ORDER BY block_height DESC
+LIMIT 10 OFFSET 10000;
+
+-- Approach 2: Keyset pagination (faster for high offsets)
+-- First query to get initial page
+SELECT * FROM bitcoin_blocks
+ORDER BY block_height DESC
+LIMIT 10;
+
+-- Subsequent pages use WHERE clause instead of OFFSET
+SELECT * FROM bitcoin_blocks
+WHERE block_height < 825000  -- Last block_height from previous page
+ORDER BY block_height DESC
+LIMIT 10;
+```
+
+**Performance Tip**: For large datasets (> 1M rows), keyset pagination (Approach 2) is significantly faster than OFFSET-based pagination because it doesn't require scanning skipped rows.
 
 ---
 

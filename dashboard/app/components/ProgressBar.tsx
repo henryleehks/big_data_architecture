@@ -17,8 +17,9 @@ export default function ProgressBar({
   const progress = useMemo(() => {
     if (!startedAt || !isRunning) return 0
 
-    // Validate timestamp is fresh
-    const started = new Date(startedAt).getTime()
+    // Normalize timestamp: replace space with 'T' for ISO 8601 format
+    const normalizedTimestamp = startedAt.replace(' ', 'T')
+    const started = new Date(normalizedTimestamp).getTime()
     const now = Date.now()
     const elapsedMs = now - started
 

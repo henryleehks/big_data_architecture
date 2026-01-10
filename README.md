@@ -119,6 +119,36 @@ Solana's high throughput generates massive data volumes quickly, making it perfe
 
 Analyzing both chains demonstrates how different blockchain architectures affect data collection strategies, storage requirements, and query patterns.
 
+## Learning Objectives
+
+After completing this project, students will understand:
+
+### 1. Big Data Fundamentals
+- **The 5Vs Framework**: Volume, Velocity, Variety, Veracity, and Value with real blockchain examples
+- **Real-Time Data Ingestion**: Continuous data collection patterns and streaming architectures
+- **Columnar Storage**: Why ClickHouse outperforms row-based databases for analytical workloads
+- **Data Compression**: Codec selection strategies (ZSTD, Delta, DoubleDelta) for different data types
+
+### 2. Blockchain Concepts
+- **Bitcoin UTXO Model**: How transactions reference unspent outputs instead of account balances
+- **Solana Account Model**: State management with accounts and stateless programs
+- **Consensus Mechanisms**: Proof-of-Work vs Proof-of-History + Proof-of-Stake trade-offs
+- **Cross-Chain Analysis**: Comparing performance, security, and scalability across blockchains
+
+### 3. Modern Data Stack
+- **Docker Containerization**: Multi-service orchestration with Docker Compose
+- **ClickHouse Database**: Schema design for time-series data and query optimization
+- **FastAPI Backend**: Async Python for concurrent API calls and thread management
+- **Next.js Dashboards**: Real-time visualization with Server Components and SWR
+- **REST API Design**: Endpoint design, state management, and error handling
+
+### 4. Data Engineering Skills
+- **Schema Design**: Choosing ORDER BY columns, codecs, and engine types
+- **Data Quality Validation**: Implementing VERACITY checks and logging anomalies
+- **API Integration**: RPC protocols, rate limiting, retry logic, and error recovery
+- **SQL Optimization**: Columnar query patterns, time-series aggregations, and partitioning
+- **Performance Tuning**: Pagination strategies, client-side vs server-side rendering
+
 ## Features
 
 - **Multi-Blockchain Support**: Simultaneously collects data from Bitcoin and Solana using free public RPC endpoints
@@ -131,6 +161,23 @@ Analyzing both chains demonstrates how different blockchain architectures affect
 - **Fully Configurable**: All parameters managed through a single `.env` file
 - **Safety Limits**: Automatic collection shutdown based on configurable time and data volume thresholds
 - **Educational Focus**: Designed for teaching data engineering concepts with clear documentation and sample queries
+
+## Recent Updates
+
+### v1.2.0 (January 2026)
+- Added real-time dashboard with Next.js 16 and Turbopack
+- Implemented data preview tables with client-side pagination (10 rows/page)
+- Fixed timestamp validation for auto-stop timer (UTC timezone handling)
+- Added cache-control headers to prevent browser caching issues
+- Improved error handling and state synchronization between components
+- Enhanced table compression with optimized codecs
+
+### v1.1.0 (January 2026)
+- Migrated from Streamlit to Next.js dashboard for better performance
+- Added countdown timer with automatic collection shutdown
+- Implemented data quality verification table (VERACITY checks)
+- Enhanced browser caching strategy with proper cache-control headers
+- Reorganized repository structure for better student navigation
 
 ## System Architecture
 
@@ -259,7 +306,9 @@ You can skip creating `.env` entirely and use `.env.example` as-is.
 - `BITCOIN_ENABLED=true` / `SOLANA_ENABLED=true`: Enable/disable specific blockchains
   - Set to `false` to focus on one chain at a time
 
+<!-- ETHEREUM: Commented out - uncomment when re-enabling
 **Ethereum Note**: Disabled by default (requires free API key from Infura or Alchemy)
+-->
 
 See "Configuration Reference" section at the end for all available options.
 
@@ -811,7 +860,7 @@ This project demonstrates the **5Vs of Big Data** - the defining characteristics
 |---|------------|----------------------------------|
 | **Volume** | The sheer scale of data | Bitcoin's blockchain is ~500GB+. ClickHouse's columnar storage with 80-95% compression handles this efficiently. See partitioning by month. |
 | **Velocity** | Speed of data generation and processing | Solana produces ~2.5 blocks/second vs Bitcoin's 1 block/10 min. Our async collectors handle both velocities concurrently. |
-| **Variety** | Different data types and structures | Bitcoin (UTXO, REST API) vs Solana (accounts, JSON-RPC) vs Ethereum (EVM, JSON-RPC). Each uses different data models unified into our schema. |
+| **Variety** | Different data types and structures | Bitcoin (UTXO, REST API) vs Solana (accounts, JSON-RPC) <!-- vs Ethereum (EVM, JSON-RPC) -->. Each uses different data models unified into our schema. |
 | **Veracity** | Data quality and trustworthiness | The `DataValidator` class validates blocks and transactions, checking completeness, accuracy, and consistency. Issues are logged to the `data_quality` table. |
 | **Value** | Extracting meaningful insights | Dashboard analytics, SQL queries, and cross-chain comparisons turn raw blockchain data into insights about fees, throughput, and network health. |
 
@@ -838,23 +887,32 @@ Look for `[VOLUME]`, `[VELOCITY]`, `[VARIETY]`, `[VERACITY]`, and `[VALUE]` comm
 The following features are planned for future releases:
 
 ### Ethereum Support
-**Status:** Planned
+**Status:** CODE READY - Temporarily Disabled
 
-Ethereum data collection is under development. Unlike Bitcoin and Solana, reliable Ethereum RPC access requires a paid API key from providers like Infura or Alchemy. We're working on:
+<!-- ========================================
+ETHEREUM: The code is fully implemented but commented out to focus on Bitcoin and Solana first.
+See collector/collectors/ethereum_collector.py for the complete implementation.
 
-- Integration with free-tier Ethereum RPC providers
-- Comprehensive Ethereum data collection (blocks, transactions, logs, traces)
-- Gas price analysis and optimization
-- Smart contract event parsing
-- ERC-20 token transfer tracking
+To re-enable Ethereum:
+1. Uncomment ethereum_collector.py (all 259 lines)
+2. Uncomment Ethereum references in collector/main.py
+3. Uncomment Ethereum tables in clickhouse-init/01-init-schema.sql
+4. Set ETHEREUM_ENABLED=true in .env
+5. Add valid Ethereum RPC URL with API key
+======================================== -->
+
+Ethereum data collection is fully implemented but temporarily disabled. Unlike Bitcoin and Solana, reliable Ethereum RPC access requires a paid API key from providers like Infura or Alchemy. We're focusing on Bitcoin and Solana first.
 
 **Why Ethereum requires API keys:**
-Free public Ethereum RPC endpoints are heavily rate-limited and unreliable (returning errors like `Cannot fulfill request`). Educational institutions interested in Ethereum support can:
+Free public Ethereum RPC endpoints are heavily rate-limited and unreliable. Educational institutions interested in Ethereum support can:
 1. Sign up for free API keys at [Infura](https://www.infura.io/) or [Alchemy](https://www.alchemy.com/)
-2. Configure `ETHEREUM_ENABLED=true` in `.env`
-3. Add your API key to `ETHEREUM_RPC_URL`
+2. Uncomment Ethereum code (see instructions above)
+3. Configure `ETHEREUM_ENABLED=true` in `.env`
+4. Add your API key to `ETHEREUM_RPC_URL`
 
 **Ethereum Schema Reference:**
+
+<!-- Note: These tables are currently not created. Uncomment schema in 01-init-schema.sql to enable. -->
 
 <details>
 <summary>Click to view Ethereum table schemas</summary>

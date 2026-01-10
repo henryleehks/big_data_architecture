@@ -68,7 +68,8 @@ from fastapi.responses import JSONResponse
 import clickhouse_connect
 from dotenv import load_dotenv
 
-from collectors.ethereum_collector import EthereumCollector
+# ETHEREUM: Commented out - uncomment when re-enabling Ethereum
+# from collectors.ethereum_collector import EthereumCollector
 from collectors.bitcoin_collector import BitcoinCollector
 from collectors.solana_collector import SolanaCollector
 
@@ -140,10 +141,11 @@ def get_clickhouse_client():
 #
 # Environment variables are loaded from .env file by python-dotenv,
 # making local development easy while supporting containerized deployments.
-ethereum_collector = EthereumCollector(
-    rpc_url=os.getenv('ETHEREUM_RPC_URL'),
-    enabled=os.getenv('ETHEREUM_ENABLED', 'true').lower() == 'true'
-)
+# ETHEREUM: Commented out - uncomment when re-enabling Ethereum
+# ethereum_collector = EthereumCollector(
+#     rpc_url=os.getenv('ETHEREUM_RPC_URL'),
+#     enabled=os.getenv('ETHEREUM_ENABLED', 'true').lower() == 'true'
+# )
 
 bitcoin_collector = BitcoinCollector(
     rpc_url=os.getenv('BITCOIN_RPC_URL'),
@@ -257,7 +259,7 @@ async def collect_data():
     """)
 
     # Capture started_at timestamp to preserve in subsequent updates
-    started_at = datetime.now()
+    started_at = datetime.utcnow()
 
     try:
         while is_collecting:
@@ -291,8 +293,9 @@ async def collect_data():
             # due to Python's Global Interpreter Lock (GIL).
             tasks = []
 
-            if ethereum_collector.enabled:
-                tasks.append(ethereum_collector.collect(client))
+            # ETHEREUM: Commented out - uncomment when re-enabling Ethereum
+            # if ethereum_collector.enabled:
+            #     tasks.append(ethereum_collector.collect(client))
 
             if bitcoin_collector.enabled:
                 tasks.append(bitcoin_collector.collect(client))
@@ -320,10 +323,11 @@ async def collect_data():
                     SELECT
                         sum(cnt) as total
                     FROM (
-                        SELECT count() as cnt FROM ethereum_blocks
-                        UNION ALL
-                        SELECT count() as cnt FROM ethereum_transactions
-                        UNION ALL
+                        -- ETHEREUM: Commented out - uncomment when re-enabling Ethereum
+                        -- SELECT count() as cnt FROM ethereum_blocks
+                        -- UNION ALL
+                        -- SELECT count() as cnt FROM ethereum_transactions
+                        -- UNION ALL
                         SELECT count() as cnt FROM bitcoin_blocks
                         UNION ALL
                         SELECT count() as cnt FROM bitcoin_transactions
@@ -353,7 +357,7 @@ async def collect_data():
                 # Update state with current totals
                 client.command(f"""
                     INSERT INTO collection_state (id, is_running, started_at, total_records, total_size_bytes, updated_at)
-                    VALUES (1, true, '{started_at.isoformat()}', {total_records}, {total_size}, now())
+                    VALUES (1, true, '{started_at.strftime('%Y-%m-%d %H:%M:%S')}', {total_records}, {total_size}, now())
                 """)
             except Exception as e:
                 logger.error(f"Error updating totals: {e}")
@@ -369,7 +373,7 @@ async def collect_data():
         if 'started_at' in locals():
             client.command(f"""
                 INSERT INTO collection_state (id, is_running, started_at, stopped_at, updated_at)
-                VALUES (1, false, '{started_at.isoformat()}', now(), now())
+                VALUES (1, false, '{started_at.strftime('%Y-%m-%d %H:%M:%S')}', now(), now())
             """)
         else:
             client.command("""
@@ -471,8 +475,8 @@ async def get_status():
             row = result.result_rows[0]
             return {
                 "is_running": bool(row[0]),
-                "started_at": str(row[1]) if row[1] else None,
-                "stopped_at": str(row[2]) if row[2] else None,
+                "started_at": str(row[1]).replace(' ', 'T') + 'Z' if row[1] else None,
+                "stopped_at": str(row[2]).replace(' ', 'T') + 'Z' if row[2] else None,
                 "total_records": row[3],
                 "total_size_bytes": row[4]
             }
@@ -549,7 +553,8 @@ async def health_check():
             name for name, collector in [
                 ('bitcoin', bitcoin_collector),
                 ('solana', solana_collector),
-                ('ethereum', ethereum_collector)
+                # ETHEREUM: Commented out - uncomment when re-enabling Ethereum
+                # ('ethereum', ethereum_collector)
             ] if collector.enabled
         ]
 

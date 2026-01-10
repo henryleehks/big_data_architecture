@@ -1,7 +1,7 @@
 {
-  "name": "dashboard",
-  "version": "1.0.0",
-  "description": "Blockchain Data Ingestion Dashboard - Next.js",
+  "name": "blockchain-data-dashboard",
+  "version": "1.2.0",
+  "description": "Real-time blockchain data ingestion monitoring dashboard with pagination and live updates - Built with Next.js 16, ClickHouse, and Turbopack",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -9,9 +9,22 @@
     "start": "next start",
     "lint": "next lint"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": [
+    "blockchain",
+    "bitcoin",
+    "solana",
+    "clickhouse",
+    "nextjs",
+    "real-time",
+    "data-engineering",
+    "big-data",
+    "dashboard",
+    "monitoring",
+    "analytics",
+    "pagination"
+  ],
+  "author": "Blockchain Data Ingestion Project Contributors",
+  "license": "MIT",
   "dependencies": {
     "@clickhouse/client": "^1.16.0",
     "@tailwindcss/postcss": "^4.1.18",

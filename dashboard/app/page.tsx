@@ -3,17 +3,29 @@
 import { useEffect, useCallback } from 'react'
 import { useCollectorStatus } from './hooks/useCollectorStatus'
 import { useBlockchainData } from './hooks/useBlockchainData'
+import {
+  useBitcoinBlocksPreview,
+  useBitcoinTransactionsPreview,
+  useSolanaBlocksPreview,
+  useSolanaTransactionsPreview
+} from './hooks/usePreviewData'
 import StatusCard from './components/StatusCard'
 import ControlButtons from './components/ControlButtons'
 import CountdownTimer from './components/CountdownTimer'
-import ProgressBar from './components/ProgressBar'
 import MetricsGrid from './components/MetricsGrid'
 import BlockchainChart from './components/BlockchainChart'
 import DataTable from './components/DataTable'
+import PreviewTable from './components/PreviewTable'
 
 export default function DashboardPage() {
   const { status, isLoading: statusLoading, isError: statusError, mutate: refreshStatus } = useCollectorStatus()
   const { data, isLoading: dataLoading, isError: dataError } = useBlockchainData()
+
+  // Fetch preview data for tables
+  const bitcoinBlocks = useBitcoinBlocksPreview()
+  const bitcoinTransactions = useBitcoinTransactionsPreview()
+  const solanaBlocks = useSolanaBlocksPreview()
+  const solanaTransactions = useSolanaTransactionsPreview()
 
   // Get max collection time from environment (fallback to 10 minutes)
   const maxMinutes = parseInt(process.env.NEXT_PUBLIC_MAX_COLLECTION_TIME_MINUTES || '10')
@@ -132,16 +144,6 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Progress Bar */}
-      {status?.is_running && (
-        <div className="bg-white rounded-lg shadow p-6 mb-6 border border-gray-200">
-          <ProgressBar
-            startedAt={status.started_at}
-            isRunning={status.is_running}
-            maxMinutes={maxMinutes}
-          />
-        </div>
-      )}
 
       {/* Metrics Grid */}
       <div className="mb-6">
@@ -169,6 +171,117 @@ export default function DashboardPage() {
           solanaBlocks={data?.solana_blocks || 0}
           solanaTransactions={data?.solana_transactions || 0}
           totalRecords={data?.total_records || 0}
+        />
+      </div>
+
+      {/* Data Preview Section */}
+      <div className="mt-8 space-y-6">
+        <h2 className="text-2xl font-bold text-gray-900">Data Preview</h2>
+        <p className="text-gray-600 mb-4">
+          Preview of the latest 550 records from each blockchain table (updates every 10 seconds)
+        </p>
+
+        {/* Bitcoin Blocks Preview */}
+        <PreviewTable
+          title="Bitcoin Blocks"
+          data={bitcoinBlocks.data || []}
+          columns={[
+            { key: 'block_height', label: 'Height' },
+            {
+              key: 'block_hash',
+              label: 'Block Hash',
+              format: (val) => `${val.slice(0, 12)}...${val.slice(-8)}`
+            },
+            {
+              key: 'timestamp',
+              label: 'Timestamp',
+              format: (val) => new Date(val).toLocaleString()
+            },
+            { key: 'transaction_count', label: 'Txs' },
+            {
+              key: 'difficulty',
+              label: 'Difficulty',
+              format: (val) => parseInt(val).toLocaleString()
+            },
+            {
+              key: 'size',
+              label: 'Size',
+              format: (val) => `${(val / 1024).toFixed(2)} KB`
+            },
+          ]}
+        />
+
+        {/* Bitcoin Transactions Preview */}
+        <PreviewTable
+          title="Bitcoin Transactions"
+          data={bitcoinTransactions.data || []}
+          columns={[
+            {
+              key: 'tx_hash',
+              label: 'Tx Hash',
+              format: (val) => `${val.slice(0, 12)}...${val.slice(-8)}`
+            },
+            { key: 'block_height', label: 'Block' },
+            {
+              key: 'timestamp',
+              label: 'Timestamp',
+              format: (val) => new Date(val).toLocaleString()
+            },
+            {
+              key: 'fee',
+              label: 'Fee (sats)',
+              format: (val) => parseInt(val).toLocaleString()
+            },
+            { key: 'input_count', label: 'Inputs' },
+            { key: 'output_count', label: 'Outputs' },
+          ]}
+        />
+
+        {/* Solana Blocks Preview */}
+        <PreviewTable
+          title="Solana Blocks"
+          data={solanaBlocks.data || []}
+          columns={[
+            { key: 'slot', label: 'Slot' },
+            { key: 'block_height', label: 'Height' },
+            {
+              key: 'block_hash',
+              label: 'Block Hash',
+              format: (val) => `${val.slice(0, 12)}...${val.slice(-8)}`
+            },
+            {
+              key: 'timestamp',
+              label: 'Timestamp',
+              format: (val) => new Date(val).toLocaleString()
+            },
+            { key: 'parent_slot', label: 'Parent Slot' },
+            { key: 'transaction_count', label: 'Txs' },
+          ]}
+        />
+
+        {/* Solana Transactions Preview */}
+        <PreviewTable
+          title="Solana Transactions"
+          data={solanaTransactions.data || []}
+          columns={[
+            {
+              key: 'signature',
+              label: 'Signature',
+              format: (val) => `${val.slice(0, 12)}...${val.slice(-8)}`
+            },
+            { key: 'slot', label: 'Slot' },
+            {
+              key: 'timestamp',
+              label: 'Timestamp',
+              format: (val) => new Date(val).toLocaleString()
+            },
+            {
+              key: 'fee',
+              label: 'Fee (lamports)',
+              format: (val) => parseInt(val).toLocaleString()
+            },
+            { key: 'status', label: 'Status' },
+          ]}
         />
       </div>
 

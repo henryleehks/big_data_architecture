@@ -19,7 +19,9 @@ export default function CountdownTimer({
   // Validate timestamp is fresh and not stale
   const isValidStartTime = (timestamp: string | null): boolean => {
     if (!timestamp) return false
-    const started = new Date(timestamp).getTime()
+    // Normalize timestamp: replace space with 'T' for ISO 8601 format
+    const normalized = timestamp.replace(' ', 'T')
+    const started = new Date(normalized).getTime()
     const now = Date.now()
     const elapsed = (now - started) / 1000
     // Validate timestamp is recent and not in future
@@ -37,7 +39,9 @@ export default function CountdownTimer({
         return maxMinutes * 60 // Return max time if invalid
       }
 
-      const started = new Date(startedAt).getTime()
+      // Normalize timestamp: replace space with 'T' for ISO 8601 format
+      const normalizedTimestamp = startedAt.replace(' ', 'T')
+      const started = new Date(normalizedTimestamp).getTime()
       const now = Date.now()
       const elapsed = Math.floor((now - started) / 1000)
       const total = maxMinutes * 60
