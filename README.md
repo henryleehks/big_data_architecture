@@ -429,6 +429,17 @@ All configuration is managed through the `.env` file. Key parameters include:
 
 **Note**: Public RPC endpoints may have rate limits. For production use, consider using dedicated RPC providers like Alchemy, Infura, or QuickNode.
 
+### Security Considerations
+
+**IMPORTANT FOR PRODUCTION**: The default ClickHouse password (`clickhouse_password`) is intentionally simple for local development. If you deploy this system to a production environment:
+
+1. Generate a strong password: `openssl rand -base64 32`
+2. Update `CLICKHOUSE_PASSWORD` in `.env`
+3. Never use the default password in production
+4. Never commit your production `.env` file to git
+
+For this educational project running locally via Docker Compose, the default password is acceptable.
+
 ## Data Dictionaries
 
 The tables below define the schema for blockchain data collected by this system. Column descriptions provide context for each field, but for deeper explanations of blockchain concepts (UTXO, Merkle trees, Proof-of-History, etc.), see **[docs/GLOSSARY.md](docs/GLOSSARY.md)**.
